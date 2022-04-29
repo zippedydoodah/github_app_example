@@ -1,0 +1,35 @@
+# yamllint disable rule:truthy
+# yamllint disable rule:line-length
+name: Workflow
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  ci-pipeline:
+    runs-on: "self-hosted"
+    steps:
+      - name: Checkout source code from Github
+        uses: actions/checkout@v3.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Checkout pipelines
+        uses: actions/checkout@v3.0.0
+        with:
+          repository: n26/github-actions-pipelines
+          token: ${{ secrets.PRIVATE_ACTIONS_TOKEN }}
+          path: pipelines
+          ref: v2.0.1
+
+      - name: JDK setup and build
+        uses: ./pipelines/jdk
+        with:
+          github-token: ${{ secrets.PRIVATE_ACTIONS_TOKEN }}
+          vault-token: ${{ secrets.VAULT_TOKEN }}
+          container-builder: dockerfile
+          break-when-sonarqube-fails: yes
+          promote-to: live
